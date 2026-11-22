@@ -1,0 +1,5 @@
+- targets:
+    - https://prometheus.io
+    - https://grafana.com
+  labels:
+    env: public

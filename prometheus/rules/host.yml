@@ -1,0 +1,47 @@
+groups:
+  - name: host
+    rules:
+      - alert: NodeDown
+        expr: up{job="node"} == 0
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Node {{ $labels.instance }} is down"
+          description: "Prometheus has failed to scrape the node exporter for more than 2 minutes."
+
+      - alert: HostHighCPU
+        expr: 100 - (avg by (instance) (rate(node_cpu_seconds_total{mode="idle"}[5m])) * 100) > 85
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High CPU usage on {{ $labels.instance }}"
+          description: "CPU usage has been above 85% for 10 minutes."
+
+      - alert: HostHighMemory
+        expr: (1 - node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes) * 100 > 90
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High memory usage on {{ $labels.instance }}"
+          description: "Memory usage has been above 90% for 10 minutes."
+
+      - alert: HostDiskWillFill
+        expr: (1 - node_filesystem_avail_bytes{fstype!~"tmpfs|overlay"} / node_filesystem_size_bytes{fstype!~"tmpfs|overlay"}) * 100 > 85
+        for: 15m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Disk space is high on {{ $labels.instance }}"
+          description: "Mount point {{ $labels.mountpoint }} has been above 85% for 15 minutes."
+
+      - alert: HostHighLoad
+        expr: node_load1 > 2 * count by (instance) (node_cpu_seconds_total{mode="idle"})
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High load on {{ $labels.instance }}"
+          description: "The 1-minute load average is more than twice the CPU count for 10 minutes."

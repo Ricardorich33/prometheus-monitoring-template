@@ -1,0 +1,29 @@
+groups:
+  - name: http-probes
+    rules:
+      - alert: HttpProbeFailed
+        expr: probe_success{job="blackbox"} == 0
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "HTTP probe failed: {{ $labels.instance }}"
+          description: "Blackbox Exporter has failed to probe the target for more than 2 minutes."
+
+      - alert: HttpProbeSlow
+        expr: probe_duration_seconds{job="blackbox"} > 3
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "HTTP probe is slow: {{ $labels.instance }}"
+          description: "The probe has taken more than 3 seconds for 5 minutes."
+
+      - alert: SSLCertExpiringSoon
+        expr: probe_ssl_earliest_cert_expiry{job="blackbox"} - time() < 14 * 24 * 3600 and probe_ssl_earliest_cert_expiry{job="blackbox"} > 0
+        for: 1h
+        labels:
+          severity: warning
+        annotations:
+          summary: "TLS certificate expires soon: {{ $labels.instance }}"
+          description: "The TLS certificate expires in less than 14 days."
